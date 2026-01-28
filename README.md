@@ -1,8 +1,8 @@
-# Cumpiler AI 🎓⚡
+# Comculations 🎓⚡
 
-**Cumpiler AI** is a state-of-the-art educational code compiler designed to help students and developers learn programming with intelligent feedback. Unlike traditional online compilers, Cumpiler AI analyzes your code errors and provides simplified, AI-powered explanations to help you understand *why* your code failed and *how* to fix it.
+**Comculations** is a state-of-the-art educational code compiler designed to help students and developers learn programming with intelligent feedback. Unlike traditional online compilers, Comculations analyzes your code errors and provides simplified, AI-powered explanations to help you understand *why* your code failed and *how* to fix it.
 
-![Cumpiler AI](https://placehold.co/1200x600/1e1e2e/cba6f7?text=Cumpiler+AI+Preview)
+![Comculations](https://placehold.co/1200x600/1e1e2e/cba6f7?text=Comculations+Preview)
 
 ## ✨ Key Features
 
@@ -48,8 +48,8 @@ Follow these steps to run the project locally:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/educompile-ai.git
-   cd educompile-ai
+   git clone https://github.com/indranil122/Comculations.git
+   cd Comculations
    ```
 
 2. **Install dependencies**
