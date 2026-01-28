@@ -41,7 +41,7 @@ export default function LandingPage() {
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
             <a href="#features" className="hover:text-white transition-colors duration-300">Features</a>
             <a href="#playground" className="hover:text-white transition-colors duration-300">Playground</a>
-            <a href="#github" className="hover:text-white transition-colors duration-300">Open Source</a>
+            <a href="https://github.com/indranil122/Comculations" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors duration-300">Open Source</a>
           </div>
 
           <div className="flex items-center gap-4">
@@ -81,10 +81,15 @@ export default function LandingPage() {
                 Start Coding
                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <button className="w-full sm:w-auto px-8 py-4 rounded-xl bg-black border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-600 transition-all font-medium flex items-center justify-center gap-2">
+              <a
+                href="https://github.com/indranil122/Comculations"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto px-8 py-4 rounded-xl bg-black border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-600 transition-all font-medium flex items-center justify-center gap-2"
+              >
                 <Github className="w-4 h-4" />
                 GitHub
-              </button>
+              </a>
             </div>
 
             {/* Trusted By / Mock Logos - Minimalistic Style (Image 0) */}
@@ -219,7 +224,7 @@ export default function LandingPage() {
             <div className="flex flex-col gap-4">
               <span className="text-white">Connect</span>
               <a href="https://twitter.com/comculations" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-white transition-colors text-sm">Twitter</a>
-              <a href="https://github.com/comculations" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-white transition-colors text-sm">GitHub</a>
+              <a href="https://github.com/indranil122/Comculations" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-white transition-colors text-sm">GitHub</a>
               <a href="https://linkedin.com/company/comculations" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-white transition-colors text-sm">LinkedIn</a>
             </div>
           </div>
@@ -228,7 +233,9 @@ export default function LandingPage() {
             <p>© 2026 Comculations. All rights reserved.</p>
             <div className="flex items-center gap-6">
               <Twitter className="w-5 h-5 hover:text-white transition-colors cursor-pointer" />
-              <Github className="w-5 h-5 hover:text-white transition-colors cursor-pointer" />
+              <a href="https://github.com/indranil122/Comculations" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+                <Github className="w-5 h-5 hover:text-white transition-colors cursor-pointer" />
+              </a>
               <Linkedin className="w-5 h-5 hover:text-white transition-colors cursor-pointer" />
             </div>
           </div>

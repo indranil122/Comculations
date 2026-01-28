@@ -12,7 +12,8 @@ import {
     Code2,
     FileCode,
     Menu,
-    X
+    X,
+    Github
 } from 'lucide-react';
 import Link from 'next/link';
 import { useStore } from '@/store/useStore';
@@ -206,6 +207,17 @@ export default function Header() {
                         >
                             <Settings className="w-5 h-5" />
                         </button>
+
+                        {/* GitHub Link */}
+                        <a
+                            href="https://github.com/indranil122/Comculations"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-icon tooltip"
+                            data-tooltip="GitHub"
+                        >
+                            <Github className="w-5 h-5" />
+                        </a>
                     </div>
 
                     {/* Mobile Controls */}
