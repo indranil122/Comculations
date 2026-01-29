@@ -15,7 +15,10 @@ import {
     Sparkles,
     Copy,
     Send,
-    Keyboard
+    Keyboard,
+    Trash2,
+    Download,
+    AlertTriangle
 } from 'lucide-react';
 
 export default function OutputPanel() {
@@ -46,11 +49,46 @@ export default function OutputPanel() {
         }
     }, [isAwaitingInput]);
 
+    // Auto-switch to output tab when execution starts
+    useEffect(() => {
+        if (isExecuting) {
+            setActiveTab('output');
+        }
+    }, [isExecuting, setActiveTab]);
+
+    // Auto-switch to error tab if execution fails (and not waiting for input)
+    useEffect(() => {
+        if (!isExecuting && executionResult) {
+            if (executionResult.exitCode !== 0 && executionResult.exitCode !== -1 && executionResult.error) {
+                setActiveTab('error');
+            }
+        }
+    }, [executionResult, isExecuting, setActiveTab]);
+
+    const handleClear = () => {
+        setExecutionResult(null);
+        setInteractiveInput('');
+    };
+
+    const handleDownload = () => {
+        if (!executionResult?.output) return;
+        const blob = new Blob([executionResult.output], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `output-${Date.now()}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     const handleSubmitInput = async () => {
         if (!interactiveInput.trim()) return;
 
-        // Set the input and execute
-        setInput(interactiveInput);
+
+        // Execute immediately without persisting input to global store
+        // This ensures subsequent runs will ask for input again
         setIsExecuting(true);
 
         try {
@@ -119,30 +157,58 @@ export default function OutputPanel() {
                     })}
                 </div>
 
-                {/* Execution Stats */}
-                {executionResult && executionResult.exitCode !== -1 && (
-                    <div className="flex items-center gap-4 pr-4">
-                        <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span>{executionResult.executionTime}ms</span>
+
+                {/* Actions & Stats */}
+                <div className="flex items-center gap-4 pr-4">
+                    {/* Execution Stats */}
+                    {executionResult && executionResult.exitCode !== -1 && (
+                        <div className="flex items-center gap-4 px-3 py-1.5 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-subtle)]">
+                            <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]" title="Execution Time">
+                                <Clock className="w-3.5 h-3.5" />
+                                <span>{executionResult.executionTime}ms</span>
+                            </div>
+                            <div className="w-px h-3 bg-[var(--border-subtle)]" />
+                            <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]" title="Memory Usage">
+                                <MemoryStick className="w-3.5 h-3.5" />
+                                <span>{executionResult.memoryUsage}KB</span>
+                            </div>
+                            <div className="w-px h-3 bg-[var(--border-subtle)]" />
+                            {executionResult.exitCode === 0 ? (
+                                <span className="flex items-center gap-1 text-xs font-medium text-[var(--accent-success)]">
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    Success
+                                </span>
+                            ) : (
+                                <span className="flex items-center gap-1 text-xs font-medium text-[var(--accent-error)]">
+                                    <XCircle className="w-3.5 h-3.5" />
+                                    Error
+                                </span>
+                            )}
                         </div>
-                        <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
-                            <MemoryStick className="w-3.5 h-3.5" />
-                            <span>{executionResult.memoryUsage}KB</span>
+                    )}
+
+                    {/* Clear & Download Actions */}
+                    {(executionResult?.output || executionResult?.error) && (
+                        <div className="flex items-center gap-1">
+                            {executionResult.output && (
+                                <button
+                                    onClick={handleDownload}
+                                    className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] rounded-md transition-colors"
+                                    title="Download Output"
+                                >
+                                    <Download className="w-4 h-4" />
+                                </button>
+                            )}
+                            <button
+                                onClick={handleClear}
+                                className="p-1.5 text-[var(--text-muted)] hover:text-[var(--accent-error)] hover:bg-[var(--accent-error)]/10 rounded-md transition-colors"
+                                title="Clear Console"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
                         </div>
-                        {executionResult.exitCode === 0 ? (
-                            <span className="success-badge flex items-center gap-1">
-                                <CheckCircle2 className="w-3 h-3" />
-                                Success
-                            </span>
-                        ) : (
-                            <span className="error-badge flex items-center gap-1">
-                                <XCircle className="w-3 h-3" />
-                                Error
-                            </span>
-                        )}
-                    </div>
-                )}
+                    )}
+                </div>
 
                 {/* Awaiting Input Indicator */}
                 {isAwaitingInput && (
@@ -189,7 +255,7 @@ export default function OutputPanel() {
                                         <Copy className="w-4 h-4" />
                                     </button>
                                     <pre className="text-sm font-mono text-[var(--text-primary)] whitespace-pre-wrap">
-                                        {executionResult.output}
+                                        {executionResult?.output}
                                     </pre>
 
                                     {/* Interactive Input Field */}
@@ -231,9 +297,20 @@ export default function OutputPanel() {
                                     )}
                                 </div>
                             ) : (
-                                <div className="flex flex-col items-center justify-center h-full gap-3 text-[var(--text-muted)]">
-                                    <Terminal className="w-10 h-10 opacity-50" />
-                                    <p className="text-sm">Run your code to see output here</p>
+                                <div className="flex flex-col items-center justify-center h-full gap-4 text-[var(--text-muted)] p-8 text-center select-none">
+                                    <div className="w-16 h-16 rounded-2xl bg-[var(--bg-tertiary)] flex items-center justify-center mb-2 border border-[var(--border-subtle)]">
+                                        <Terminal className="w-8 h-8 opacity-40" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-medium text-[var(--text-secondary)]">Ready to Compile</p>
+                                        <p className="text-xs max-w-[240px] mx-auto opacity-70">
+                                            Run your code to see the output here. Console logs, print statements, and errors will appear in this panel.
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-2 px-3 py-1.5 bg-[var(--bg-tertiary)] rounded-full border border-[var(--border-subtle)]">
+                                        <span className="w-2 h-2 rounded-full bg-[var(--accent-success)] animate-pulse" />
+                                        <span className="text-[10px] font-medium tracking-wide uppercase opacity-70">Engine Ready</span>
+                                    </div>
                                 </div>
                             )}
                         </motion.div>
@@ -251,7 +328,7 @@ export default function OutputPanel() {
                                         <div className="flex items-start gap-3">
                                             <AlertCircle className="w-5 h-5 text-[var(--accent-error)] flex-shrink-0 mt-0.5" />
                                             <pre className="text-sm font-mono text-[var(--accent-error)] whitespace-pre-wrap flex-1">
-                                                {executionResult.error}
+                                                {executionResult?.error}
                                             </pre>
                                         </div>
                                     </div>
@@ -284,7 +361,7 @@ export default function OutputPanel() {
                     )}
                 </AnimatePresence>
             </div>
-        </div>
+        </div >
     );
 }
 

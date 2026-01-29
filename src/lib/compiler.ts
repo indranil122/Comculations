@@ -82,7 +82,10 @@ async function executePythonWithPyodide(
         pyodide.setStdin({
             stdin: () => {
                 if (inputIndex < inputLines.length) {
-                    return inputLines[inputIndex++];
+                    const line = inputLines[inputIndex++];
+                    // Echo input to stdout so it appears in the output panel
+                    stdout += line + '\n';
+                    return line;
                 }
                 return '';
             }
@@ -108,6 +111,39 @@ async function executePythonWithPyodide(
         const errorMessage = error instanceof Error ? error.message : String(error);
         return { output: '', error: errorMessage };
     }
+}
+
+// ============================================================================
+// TERMINAL SIMULATION HELPER
+// ============================================================================
+
+function simulateInputEcho(output: string, input: string): string {
+    if (!input.trim()) return output;
+
+    // Use a simple splitter that looks for prompt indicators
+    // Colon, Question mark, or Arrow, optionally followed by space
+    const promptRegex = /([:\?>]\s*)/g;
+
+    const inputLines = input.split('\n');
+    let result = output;
+    let searchStartIndex = 0;
+
+    for (const line of inputLines) {
+        if (!line.trim()) continue;
+
+        promptRegex.lastIndex = searchStartIndex;
+        const match = promptRegex.exec(result);
+
+        if (match) {
+            // Insert after the prompt delimiter
+            const insertPos = match.index + match[0].length;
+            result = result.slice(0, insertPos) + line + '\n' + result.slice(insertPos);
+            // Move search forward
+            searchStartIndex = insertPos + line.length + 1;
+        }
+    }
+
+    return result;
 }
 
 // ============================================================================
@@ -170,8 +206,11 @@ async function executeCWithPiston(
         }
 
         // Return execution results
+        const rawOutput = result.run.stdout || '';
+        const echoOutput = simulateInputEcho(rawOutput, input);
+
         return {
-            output: result.run.stdout || '',
+            output: echoOutput,
             error: result.run.stderr || '',
             exitCode: result.run.code || 0,
         };
@@ -219,8 +258,11 @@ async function executePythonWithPiston(
 
         const result: PistonResponse = await response.json();
 
+        const rawOutput = result.run.stdout || '';
+        const echoOutput = simulateInputEcho(rawOutput, input);
+
         return {
-            output: result.run.stdout || '',
+            output: echoOutput,
             error: result.run.stderr || '',
             exitCode: result.run.code || 0,
         };
@@ -494,17 +536,30 @@ function generateAIExplanation(
 // ============================================================================
 
 function detectInputRequirement(code: string, language: Language): string | null {
+    let cleanCode = code;
+
+    // Remove comments to avoid false positives
+    if (language === 'c') {
+        // Remove single line comments
+        cleanCode = cleanCode.replace(/\/\/.*$/gm, '');
+        // Remove multi-line comments
+        cleanCode = cleanCode.replace(/\/\*[\s\S]*?\*\//g, '');
+    } else {
+        // Remove python comments
+        cleanCode = cleanCode.replace(/#.*$/gm, '');
+    }
+
     if (language === 'c') {
         // Detect C input functions
-        if (/\bscanf\s*\(/.test(code)) return 'scanf()';
-        if (/\bgets\s*\(/.test(code)) return 'gets()';
-        if (/\bfgets\s*\(/.test(code)) return 'fgets()';
-        if (/\bgetchar\s*\(/.test(code)) return 'getchar()';
-        if (/\bgetc\s*\(/.test(code)) return 'getc()';
+        if (/\bscanf\s*\(/.test(cleanCode)) return 'scanf()';
+        if (/\bgets\s*\(/.test(cleanCode)) return 'gets()';
+        if (/\bfgets\s*\(/.test(cleanCode)) return 'fgets()';
+        if (/\bgetchar\s*\(/.test(cleanCode)) return 'getchar()';
+        if (/\bgetc\s*\(/.test(cleanCode)) return 'getc()';
     } else {
         // Detect Python input functions
-        if (/\binput\s*\(/.test(code)) return 'input()';
-        if (/\bsys\.stdin/.test(code)) return 'sys.stdin';
+        if (/\binput\s*\(/.test(cleanCode)) return 'input()';
+        if (/\bsys\.stdin/.test(cleanCode)) return 'sys.stdin';
     }
     return null;
 }
